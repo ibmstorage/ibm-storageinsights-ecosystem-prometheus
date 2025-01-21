@@ -1,0 +1,14 @@
+{
+    "siurl": "https://insights.ibm.com",
+    "ibmid": "<your-ibm-id>",
+    "apiKey": "<your-si-rest-api-key>",
+    "debug": true,
+    "tenantId": "<tenant-uuid>",
+    "systemIDs": [
+        "<system-uuid>"
+    ],
+    "metrics": [
+        "disk_total_data_rate",
+        "disk_total_response_time"
+    ]
+  }
