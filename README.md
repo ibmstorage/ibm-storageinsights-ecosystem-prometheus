@@ -19,4 +19,3 @@ Prometheus exporter for Storage Insights
 ```
 - Start Prometheus
 - Open Prometheus url in a browser
-![image](https://media.github.ibm.com/user/392205/files/0ab631a6-a10d-4aae-b3c1-78bfa8e6d8f9)
