@@ -1,5 +1,5 @@
-# si-prometheus-exporter
-Prometheus exporter for Storage Insights
+# IBM Storage Insights Prometheus Exporter
+Prometheus exporter for IBM Storage Insights
 
 # Steps to export SI metrics of a system to Prometheus
 - Prepare `config.json`. Provide following details:
