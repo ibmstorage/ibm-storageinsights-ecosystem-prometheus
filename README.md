@@ -1,8 +1,8 @@
 # IBM Storage Insights Prometheus Exporter
 Prometheus exporter for IBM Storage Insights
 
-# Steps to export SI metrics of a system to Prometheus
-- Prepare `config.json`. Provide following details:
+# Steps to export IBM Storage Insights metrics of a system to Prometheus
+- Prepare `config.json`. Provide the following details:
   - Your IBM ID
   - Your REST API Key
   - Your tenant UUID
