@@ -26,11 +26,11 @@ Software and experience prerequisites for using the Prometheus Exporter:
 The exporter calls the following Storage Insights REST APIs
 Name | URL | Method | GET parameters | Description
 ---|---|---|---|---
-Token API | /restapi/v1/{tenant_uuid}/token | POST | - | Creates an API token for tenant user
+Token API | /restapi/v1/tenants/{tenant_uuid}/token | POST | - | Creates an API token for tenant user
 Metric API | /restapi/v1/tenants/{tenant_uuid}/storage-systems/metrics | GET | metric types | Returns capacity and performance metric values for all storage systems of a given tenant
 
 ### Authentication
-Authentication is performed by the exporter by passing an authentication token in the header <code>x-api-token</code>. The authentication token is retrived by calling the Token API passing the API key in the header <code>x-api-key</code>. A tenant user can get API key from the [Storage Insights GUI](https://www.ibm.com/docs/en/storage-insights?topic=configuring-user-access-management#rest_api__section_dyd_t1t_jzb__title__1).
+Authentication is performed by the exporter by passing an authentication token in the header <code>x-api-token</code>. The authentication token is retrived by calling the Token API passing the API key in the header <code>x-api-key</code>. A tenant admin can generate API key for tenant users by logging into [Storage Insights GUI](https://www.ibm.com/docs/en/storage-insights?topic=configuring-user-access-management#rest_api__section_dyd_t1t_jzb__title__1).
 
 ## Steps to export IBM Storage Insights metrics of a system to Prometheus
 - Clone the repository
@@ -102,4 +102,4 @@ The application is also intended to act as a guide to those developers who want 
 * Metrics API allows fetching upto 3 metric types for each of the storage system in one REST API call. If more than 3 metric types are desired, it is advisable to make multiple REST API calls as appropriate. 
 
 ### License
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
