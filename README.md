@@ -84,7 +84,7 @@ Authentication is performed by the exporter by passing an authentication token i
   <img width="1482" alt="metrics" src="https://github.com/user-attachments/assets/762b702a-893e-4637-81d3-6ca1851a015b" />
 
 ## Extending Prometheus Exporter
-The application is also intended to act as a guide to those developers who want to extend the functionality of the exporter. The primary mode of getting metrics from Storage Insights is via its [REST API](https://insights.ibm.com/restapi/docs/). There are a multiple of Metrics API that provide metrics from different systems and their components. The details of how to invoke Metrics API is illustrated in the exporter file `si-metrics.go` in the simetrics Go module. To fetch more metrics, it is advisable to follow these steps:
+The application is also intended to act as a guide to those developers who want to extend the functionality of the exporter. The primary mode of getting metrics from Storage Insights is via its [REST API](https://insights.ibm.com/restapi/docs/). There are a multiple of Metrics API that provide metrics from different systems and their components. The details of how to invoke Metrics API are illustrated in the exporter file `si-metrics.go` in the simetrics Go module. To fetch more metrics, it is advisable to follow these steps:
 
 - Declare the metric types in the config module
 - Create a new Go module to fetch the additional metrics

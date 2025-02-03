@@ -50,7 +50,7 @@ func (collector *MetricCollector) Collect(ch chan<- prometheus.Metric) {
 		panic(err)
 	}
 	
-	fmt.Printf("Data received-->: %v\n", metricsList)
+	fmt.Printf("Data received: %v\n", metricsList[0])
 
 	// Loop through each entry in the metrics list
 	for _, item := range metricsList {
@@ -82,7 +82,7 @@ func (collector *MetricCollector) Collect(ch chan<- prometheus.Metric) {
 								floatVal,              // The value of the metric
 								compnameStr,              // The "name" label for the metric
 							)
-							log.Printf("Collected metric: %s", name)
+							log.Printf("Collected metric: %s for device: %s", name, compnameStr)
 						} else {
 							log.Printf("Invalid type for metric %s: expected float64, got %T", name, val)
 						}
