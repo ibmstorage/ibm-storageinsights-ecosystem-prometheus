@@ -9,50 +9,92 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/shirou/gopsutil/mem"
-	"none.rks/config/config"
-	"none.rks/simetrics"
+	"github.com/ibmstorage/ibm-storageinsights-ecosystem-prometheus/config"
+	"github.com/ibmstorage/ibm-storageinsights-ecosystem-prometheus/simetrics"
 )
 
-var (
-	// Exporter Metrics
-	memTotalDesc     = prometheus.NewDesc("memexporter_memory_total_bytes", "The amount of total memory in bytes.", []string{}, nil)
-	memUsedDesc      = prometheus.NewDesc("memexporter_memory_used_bytes", "The amount of used memory in bytes.", []string{}, nil)
-	memAvailableDesc = prometheus.NewDesc("memexporter_memory_available_bytes", "The amount of available memory in bytes.", []string{}, nil)
-	memFreeDesc      = prometheus.NewDesc("memexporter_memory_free_bytes", "The amount of free memory in bytes.", []string{}, nil)
-
-	// SI Metrics
-	diskTotalDataRate     = prometheus.NewDesc("si_disk_total_data_rate", "Total Backend Data Rate.", []string{}, nil)
-	diskTotalResponseTime = prometheus.NewDesc("si_disk_total_response_time", "Total Backend Response Time.", []string{}, nil)
-)
-
-type memCollector struct{}
-
-func (mc memCollector) Describe(ch chan<- *prometheus.Desc) {
-	prometheus.DescribeByCollect(mc, ch)
+type MetricCollector struct {
+	metrics map[string]*prometheus.Desc
 }
 
-func (mc memCollector) Collect(ch chan<- prometheus.Metric) {
+func NewMetricCollector() *MetricCollector {
+	metrics := make(map[string]*prometheus.Desc)
 
-	stats, err := mem.VirtualMemory()
-	if err != nil {
-		panic(err)
+	// Dynamically create Prometheus metrics from the list of names configured
+	for _, name := range config.AppConfig.Metrics {
+		metrics[name] = prometheus.NewDesc(
+			"si_" + name,               			// Metric name
+			"Storage Insights metric " + name, 		// Description
+			[]string{"device_name"},     			// Labels (if applicable)
+			nil,                 					// Optional: No extra labels or values
+		)
 	}
 
+	return &MetricCollector{
+		metrics: metrics,
+	}
+}
+
+// Describe implements prometheus.Collector interface
+func (collector *MetricCollector) Describe(ch chan<- *prometheus.Desc) {
+	// Send all metric descriptions to the channel
+	for _, metric := range collector.metrics {
+		ch <- metric
+	}
+}
+
+// Collect implements prometheus.Collector interface
+func (collector *MetricCollector) Collect(ch chan<- prometheus.Metric) {
 	metricsList, err := simetrics.FetchData()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Data received: %v\n", metricsList)
-	latest := metricsList[0].(map[string]interface{})
+	
+	fmt.Printf("Data received-->: %v\n", metricsList)
 
-	ch <- prometheus.MustNewConstMetric(memTotalDesc, prometheus.GaugeValue, float64(stats.Total))
-	ch <- prometheus.MustNewConstMetric(memUsedDesc, prometheus.GaugeValue, float64(stats.Used))
-	ch <- prometheus.MustNewConstMetric(memAvailableDesc, prometheus.GaugeValue, float64(stats.Available))
-	ch <- prometheus.MustNewConstMetric(memFreeDesc, prometheus.GaugeValue, float64(stats.Free))
+	// Loop through each entry in the metrics list
+	for _, item := range metricsList {
+		if data, ok := item.(map[string]interface{}); ok {
 
-	ch <- prometheus.MustNewConstMetric(diskTotalDataRate, prometheus.GaugeValue, float64(latest["disk_total_data_rate"].(float64)))
-	ch <- prometheus.MustNewConstMetric(diskTotalResponseTime, prometheus.GaugeValue, float64(latest["disk_total_response_time"].(float64)))
+			// Get the name and metrics
+			compname := data["name"]
+			metrics := data["metrics"].([]interface{}) // Get the metrics array
+
+			if len(metrics) > 0 {
+				// Extract the latest metric (first element in the metrics list)
+				latestMetric := metrics[0].(map[string]interface{})
+
+				// Type assert compname to string before using it
+				compnameStr, ok := compname.(string)
+				if !ok {
+					log.Println("compname is not a string")
+					continue
+				}
+
+				// Loop through each metric name in the collector's metrics map
+				for name, metric := range collector.metrics {
+					// Ensure the metric exists and is of the correct type (float64)
+					if val, exists := latestMetric[name]; exists {
+						if floatVal, ok := val.(float64); ok {
+							ch <- prometheus.MustNewConstMetric(
+								metric,                // The Prometheus metric descriptor
+								prometheus.GaugeValue, // The type of metric
+								floatVal,              // The value of the metric
+								compnameStr,              // The "name" label for the metric
+							)
+							log.Printf("Collected metric: %s", name)
+						} else {
+							log.Printf("Invalid type for metric %s: expected float64, got %T", name, val)
+						}
+					} else {
+						log.Printf("Metric %s not found in the latest data", name)
+					}
+				}
+			} else {
+				log.Println("No metrics found for", compname)
+			}
+		}
+	}	
 }
 
 func main() {
@@ -75,18 +117,14 @@ func main() {
 		fmt.Printf("ApiKey: %s\n", config.AppConfig.ApiKey)
 		fmt.Printf("Tenant ID: %s\n", config.AppConfig.TenantId)
 
-		fmt.Println("System IDs:")
-		for _, item := range config.AppConfig.SystemIds {
-			fmt.Printf("- UUID: %s\n", item)
-		}
-
-		fmt.Println("System IDs:")
+		fmt.Println("Metric types")
 		for _, item := range config.AppConfig.Metrics {
 			fmt.Printf("- Metric: %s\n", item)
 		}
 	}
 
-	prometheus.MustRegister(&memCollector{})
+	collector := NewMetricCollector()
+	prometheus.MustRegister(collector)
 
 	http.Handle("/metrics", promhttp.Handler())
 	log.Println("Listening on", *listenAddr)

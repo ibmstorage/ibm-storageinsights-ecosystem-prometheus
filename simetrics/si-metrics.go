@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"none.rks/config/config"
+	"github.com/ibmstorage/ibm-storageinsights-ecosystem-prometheus/config"
 )
 
 type Token struct {
@@ -76,7 +76,7 @@ func FetchData() ([]interface{}, error) {
 		}
 	}
 
-	baseURL := config.AppConfig.Siurl + "/restapi/v1/tenants/" + config.AppConfig.TenantId + "/storage-systems/" + config.AppConfig.SystemIds[0] + "/metrics"
+	baseURL := config.AppConfig.Siurl + "/restapi/v1/tenants/" + config.AppConfig.TenantId + "/storage-systems/metrics"
 
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
